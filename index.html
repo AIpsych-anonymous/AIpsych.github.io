@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="How Scaling VLMs Trades Cognitive Biases — AIpsych benchmark for diagnosing sycophancy, authority bias, and logical inconsistency in vision-language models. NeurIPS 2026 submission." />
+  <title>How Scaling VLMs Trades Cognitive Biases</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --text:        #1a1a1a;
+      --text-soft:   #444;
+      --muted:       #6a6a6a;
+      --bg:          #ffffff;
+      --bg-soft:     #f7f7f5;
+      --border:      #e3e3df;
+      --accent:      #2a5d8f;
+      --accent-soft: #4a7eb0;
+      --highlight:   #b03038;
+
+      --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+      --sans:  'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono:  'JetBrains Mono', Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ============ HEADER ============ */
+    header.paper-head {
+      padding: 60px 0 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .venue {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      margin-bottom: 24px;
+    }
+    h1.title {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: clamp(2rem, 4.4vw, 3rem);
+      line-height: 1.15;
+      letter-spacing: -0.015em;
+      color: var(--text);
+      margin: 0 auto 28px;
+      max-width: 22ch;
+    }
+    .authors {
+      font-size: 1.05rem;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+    .authors .author {
+      display: inline-block;
+      margin: 0 8px;
+    }
+    .affiliation {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 32px;
+    }
+
+    .links {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      background: var(--text);
+      color: #fff !important;
+      border-radius: 5px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      transition: background 0.15s ease;
+    }
+    .link-btn:hover {
+      background: var(--accent);
+      text-decoration: none;
+    }
+    .link-btn svg { width: 14px; height: 14px; }
+
+    /* ============ SECTIONS ============ */
+    section {
+      padding: 56px 0 16px;
+    }
+    section h2 {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 1.7rem;
+      color: var(--text);
+      margin-bottom: 22px;
+      letter-spacing: -0.01em;
+    }
+    section h3 {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--text);
+      margin: 28px 0 12px;
+    }
+    section p {
+      color: var(--text-soft);
+      margin-bottom: 16px;
+      text-align: justify;
+      hyphens: auto;
+    }
+    section p strong { color: var(--text); }
+
+    /* Abstract specifically */
+    #abstract p {
+      font-size: 1.02rem;
+      line-height: 1.7;
+    }
+
+    /* ============ FIGURES ============ */
+    figure {
+      margin: 28px 0 32px;
+      text-align: center;
+    }
+    figure img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: block;
+      margin: 0 auto;
+    }
+    figcaption {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-top: 12px;
+      text-align: left;
+      max-width: 780px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0 4px;
+    }
+    figcaption strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* ============ TL;DR / KEY FINDINGS ============ */
+    .tldr {
+      background: var(--bg-soft);
+      border-left: 3px solid var(--accent);
+      padding: 20px 24px;
+      margin: 0 0 12px;
+      border-radius: 0 4px 4px 0;
+    }
+    .tldr h3 {
+      font-family: var(--sans);
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 10px;
+    }
+    .tldr ul {
+      margin-left: 1.2em;
+      color: var(--text-soft);
+    }
+    .tldr li {
+      margin: 8px 0;
+      padding-left: 4px;
+    }
+    .tldr li strong { color: var(--text); }
+
+    /* ============ STATS ============ */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 20px 0 8px;
+    }
+    .stat {
+      padding: 18px 16px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .stat:last-child { border-right: none; }
+    .stat .n {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 1.7rem;
+      color: var(--text);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .stat .l {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    @media (max-width: 720px) {
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat:last-child { border-bottom: none; }
+    }
+
+    /* ============ TABLE ============ */
+    table.results {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+      margin: 16px 0 8px;
+    }
+    table.results th, table.results td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    table.results thead th {
+      background: var(--bg-soft);
+      font-weight: 700;
+      font-size: 0.86rem;
+      color: var(--text);
+      letter-spacing: 0.02em;
+      border-bottom: 2px solid var(--text);
+    }
+    table.results td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+    }
+    table.results tbody tr:hover { background: var(--bg-soft); }
+    .table-caption {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.55;
+    }
+
+    /* ============ BIBTEX ============ */
+    .bibtex-wrap {
+      position: relative;
+      background: #1a1a1a;
+      color: #e8e8e8;
+      border-radius: 4px;
+      padding: 16px 20px;
+      font-family: var(--mono);
+      font-size: 0.86rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .bibtex-wrap pre {
+      white-space: pre;
+      margin: 0;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      color: #e8e8e8;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 3px;
+      padding: 4px 10px;
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.18); }
+    .copy-btn.ok { background: #2d8052; border-color: #2d8052; color: #fff; }
+
+    /* ============ FOOTER ============ */
+    footer {
+      margin-top: 48px;
+      padding: 32px 0 40px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    footer p { margin: 4px 0; color: var(--muted); text-align: center; }
+
+    /* ============ INLINE NOTE ============ */
+    .takeaways-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 20px;
+    }
+    @media (min-width: 720px) {
+      .takeaways-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .takeaway {
+      padding: 18px 20px;
+      background: var(--bg-soft);
+      border-radius: 4px;
+      border-top: 3px solid var(--accent);
+    }
+    .takeaway h4 {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .takeaway p {
+      font-size: 0.94rem;
+      line-height: 1.55;
+      color: var(--text-soft);
+      margin: 0;
+      text-align: left;
+    }
+
+    /* simple highlight */
+    .hl { background: linear-gradient(transparent 60%, #ffe98a 60%); padding: 0 1px; }
+
+  </style>
+</head>
+<body>
+
+  <header class="paper-head">
+    <div class="container">
+      <span class="venue">NeurIPS 2026 · Submission</span>
+      <h1 class="title">How Scaling VLMs Trades Cognitive Biases</h1>
+
+      <div class="authors">
+        <span class="author">Anonymous Author(s)</span>
+      </div>
+      <div class="affiliation">Anonymous submission &middot; under review</div>
+
+      <div class="links">
+        <a class="link-btn" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Paper
+        </a>
+        <a class="link-btn" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          Code
+        </a>
+        <a class="link-btn" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>
+          Benchmark
+        </a>
+        <a class="link-btn" href="#cite">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 21v-13a2 2 0 0 1 2-2h3l2-3h4l2 3h3a2 2 0 0 1 2 2v13z"/><circle cx="12" cy="13" r="4"/></svg>
+          BibTeX
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ ABSTRACT ============ -->
+    <section id="abstract">
+      <div class="container">
+        <h2>Abstract</h2>
+        <p>
+          Hallucination remains a persistent challenge in Vision-Language Models (VLMs).
+          While usually attributed to technical constraints or sycophancy, these explanations
+          often overlook how hallucinations may mirror human-like cognitive biases. We propose
+          a psychological taxonomy for VLMs, categorizing biases such as sycophancy, logical
+          inconsistency, and a newly identified behavior: <strong>authority bias</strong>.
+        </p>
+        <p>
+          To study these, we developed <strong>AIpsych</strong>, a scalable benchmark designed
+          to reveal psychological tendencies in model responses. Our analysis of varying
+          architectures shows that as model size increases, VLMs exhibit a greater tendency of
+          sycophancy but reduced authority bias — suggesting that increased competence may come
+          at the cost of response integrity.
+        </p>
+
+        <div class="tldr">
+          <h3>Key Findings</h3>
+          <ul>
+            <li><strong>Authority bias is real and distinct.</strong> A new failure mode where models defer to a user's misleading framing even when visual evidence contradicts it — grounded in Milgram's obedience studies.</li>
+            <li><strong>Scaling trades one bias for another.</strong> As models grow, sycophancy <em>increases</em> while authority bias <em>decreases</em>. Authority bias ranges from 99.8% (InternVL3) to 3.4% (GPT).</li>
+            <li><strong>Humans share these tendencies — but spot the trap.</strong> 81.3% of human subjects choose the "else" escape hatch when offered. Models almost never do.</li>
+            <li><strong>Existing de-biasing techniques don't address this.</strong> Methods targeting demographic biases or language priors cannot resolve interpretive cognitive patterns.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FIGURE 1: BIASES ============ -->
+    <section>
+      <div class="container">
+        <h2>Two cognitive biases, one wrong answer</h2>
+        <figure>
+          <img src="figures/figure1-biases.png" alt="Illustration of sycophancy vs authority bias. Left: a VLM sees a pink cup but answers 'Orange' to please the questioner. Right: a model accepts the question's framing and says 'Orange' because it trusts the questioner.">
+          <figcaption>
+            <strong>Figure 1.</strong> An illustration of the cognitive biases in models.
+            <em>Left:</em> a VLM exhibits sycophancy by favoring the questioner's options
+            despite recognizing it is a pink cup. <em>Right:</em> a model demonstrates authority
+            bias by accepting the question's framing, also yielding the wrong answer.
+            Distinguishing between them requires a structured set of follow-up prompts (Figure 2).
+          </figcaption>
+        </figure>
+
+        <p>
+          Researchers have explored two angles to explain hallucinations in VLMs: engineering
+          factors (architecture, training data, decoding) and sycophancy. We argue both miss
+          something. Models also generate incorrect answers because they over-trust the user,
+          deferring excessively to misleading prompts. Imagine a teacher curating a
+          multiple-choice question with flawed options — the model still selects one, assuming
+          the authority of the question. We refer to this as <strong>authority bias</strong>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ FIGURE 2: METHOD ============ -->
+    <section id="method">
+      <div class="container">
+        <h2>Method &mdash; AIpsych</h2>
+        <p>
+          For every image, AIpsych asks four scaffolded sub-prompts. The model's path through
+          this question tree reveals which psychological factor produced its hallucination.
+          The first prompt embeds two flawed options; the rest disambiguate why the model fell
+          for them.
+        </p>
+
+        <figure>
+          <img src="figures/figure2-flow.png" alt="Sample image with question set and classification flow. The classification logic determines whether the model exhibits Type II Sycophancy, Logical Inconsistency, Type I Sycophancy, or Authority Bias based on its yes/no answers to the four sub-prompts.">
+          <figcaption>
+            <strong>Figure 2.</strong> A sample image (left) with its question set from AIpsych,
+            and an illustration of the classification flow (right). If a model selects the
+            trap option for the first prompt, subsequent prompts are presented to probe its
+            psychological behaviour. Colored phrases highlight representative prompt elements.
+          </figcaption>
+        </figure>
+
+        <h3>The four diagnostic categories</h3>
+        <p>
+          Combining the model's yes/no replies to <em>(i)</em> the trap and <em>(ii)</em> the
+          mistake-check yields a clean 2×2:
+        </p>
+        <table class="results">
+          <thead>
+            <tr>
+              <th>Trap?</th>
+              <th>Mistake noticed?</th>
+              <th>Behaviour</th>
+              <th>Interpretation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>No</td><td>No</td>
+              <td><strong>Authority Bias</strong></td>
+              <td>Did not identify the trap; truly believes the prompt's framing.</td>
+            </tr>
+            <tr>
+              <td>No</td><td>Yes</td>
+              <td><strong>Type I Sycophancy</strong></td>
+              <td>Initially denies the mistake; flips when told not to be sycophantic.</td>
+            </tr>
+            <tr>
+              <td>Yes</td><td>Yes</td>
+              <td><strong>Type II Sycophancy</strong></td>
+              <td>Acknowledges the flaw, complies with it anyway. Weak indicator.</td>
+            </tr>
+            <tr>
+              <td>Yes</td><td>No</td>
+              <td><strong>Logical Inconsistency</strong></td>
+              <td>Identifies a mistake then takes it back under instruction. Self-conflict.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ BENCHMARK STATS ============ -->
+    <section>
+      <div class="container">
+        <h2>Benchmark statistics</h2>
+        <p>
+          AIpsych contains 2,000 images from the COCO 2014 validation set and 1,000 images from
+          Visual Genome. Each image carries 5 sets of prompts, each with 4 sub-prompts &mdash;
+          yielding 60,000 questions total. We evaluate 35 model variants across 10 VLM families.
+        </p>
+
+        <div class="stats-row">
+          <div class="stat"><span class="n">3,000</span><span class="l">Images</span></div>
+          <div class="stat"><span class="n">60,000</span><span class="l">Questions</span></div>
+          <div class="stat"><span class="n">35</span><span class="l">Model variants</span></div>
+          <div class="stat"><span class="n">10</span><span class="l">VLM families</span></div>
+          <div class="stat"><span class="n">120</span><span class="l">Human subjects</span></div>
+        </div>
+
+        <figure style="margin-top: 36px;">
+          <img src="figures/figure3-categories.png" alt="Pie chart showing the distribution of subject categories in the AIpsych Benchmark: Human 25%, Vehicles & Transport 18%, Home furniture 17%, Electronics & Appliances 13%, Food 13%, Flora & fauna 7%, Other 7%." style="max-width: 580px;">
+          <figcaption>
+            <strong>Figure 3.</strong> Distribution of subject categories in the AIpsych benchmark.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ FIGURE 4: RESULTS ============ -->
+    <section id="results">
+      <div class="container">
+        <h2>Results &mdash; scaling trends</h2>
+        <p>
+          We tested three hypotheses: (1) larger models are <em>more</em> sycophantic; (2) smaller
+          models are more vulnerable to authority bias; (3) increasing size reduces logical
+          inconsistencies. The results across 35 variants confirm (1) and (2) clearly; (3) is
+          counter-intuitively mixed.
+        </p>
+
+        <figure>
+          <img src="figures/figure4-trends.png" alt="Six plots showing experimental trends across model scales for different VLM families. (a) Sycophancy I+II generally increases with model size. (b) Authority Bias decreases with model size. (c) Trap Spotting increases with model size. (d) Logical Inconsistency increases for half the models. (e) Else Trigger generally rises with size. (f) Reliability Score (ReS) increases with size.">
+          <figcaption>
+            <strong>Figure 4.</strong> Experimental trends across model scales. Plots <em>(a)</em>
+            and <em>(f)</em> suggest increasing sycophancy and reliability score with size; plot
+            <em>(b)</em> shows declining authority bias.
+          </figcaption>
+        </figure>
+
+        <h3>Highlights</h3>
+        <div class="takeaways-grid">
+          <div class="takeaway">
+            <h4>Sycophancy increases with scale</h4>
+            <p>Larger models often acknowledge a mistake in the prompt yet still provide a
+              trap-based answer &mdash; alignment training may over-optimise for user preference.</p>
+          </div>
+          <div class="takeaway">
+            <h4>Authority bias decreases with scale</h4>
+            <p>From <span class="hl">99.8% in InternVL3 to 3.4% in GPT-4o</span>. Larger models
+              are more robust to misleading user framings.</p>
+          </div>
+          <div class="takeaway">
+            <h4>Reliability score rises overall</h4>
+            <p>Gemma 4, GPT-4o and Qwen2.5-VL-72B lead. Ovis 2 climbs steadily; LLaVA actually
+              gets worse as it scales due to rising authority bias.</p>
+          </div>
+          <div class="takeaway">
+            <h4>The "else" escape hatch</h4>
+            <p>Most models reject the valid <em>else</em> option in favour of trap options &mdash;
+              proof that they are not just attending to context but specifically deferring to
+              the user's flawed framing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FIGURE 5: ATTENTION ============ -->
+    <section>
+      <div class="container">
+        <h2>Mechanism: sees and ignores vs. perceptual capture</h2>
+        <p>
+          Attention maps cleanly separate the two failure modes. In <strong>sycophancy</strong>
+          cases the model's visual backbone correctly attends to the target object — the
+          hallucination is a downstream <em>choice</em>. In <strong>authority bias</strong> cases
+          the model's gaze is captured by the coordinates suggested in the text, never landing
+          on the real object at all.
+        </p>
+
+        <figure>
+          <img src="figures/figure5-attention.png" alt="Three side-by-side images showing attention maps. Left: Sycophancy — the model correctly perceives the basket in the bottom-left. Middle: the input image. Right: Authority Bias — the model's attention focuses on the manipulated coordinates suggested by the prompt, in the top-right.">
+          <figcaption>
+            <strong>Figure 5.</strong> Visualizing cognitive bias via attention map divergence.
+            <em>Left (Sycophancy):</em> the attention map confirms the model correctly perceives
+            the basket, prioritizing user-alignment over facts.
+            <em>Right (Authority Bias):</em> the model's gaze focuses on the manipulated
+            coordinates in the prompt, demonstrating a top-down failure where textual authority
+            overrides objective visual evidence.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ HUMAN STUDY ============ -->
+    <section id="humans">
+      <div class="container">
+        <h2>Human study</h2>
+        <p>
+          We surveyed 120 undergraduate and graduate subjects (1,440 responses), asking them the
+          identical prompts under instructions matching the model evaluation. Humans display the
+          same psychological tendencies — but at much lower rates, and they overwhelmingly
+          choose the "else" option when offered.
+        </p>
+
+        <table class="results">
+          <thead>
+            <tr>
+              <th>Behaviour</th>
+              <th class="num">Humans</th>
+              <th class="num">GPT-4o</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Type I Sycophancy</td><td class="num">0.3%</td><td class="num">7.7%</td></tr>
+            <tr><td>Type II Sycophancy</td><td class="num">30.6%</td><td class="num">66.4%</td></tr>
+            <tr><td>Authority Bias</td><td class="num">12.8%</td><td class="num">4.1%</td></tr>
+            <tr><td>Logical Inconsistency</td><td class="num">1.1%</td><td class="num">10.6%</td></tr>
+            <tr><td>Trap Spotting</td><td class="num">54.7%</td><td class="num">11.3%</td></tr>
+            <tr><td>"Else" Trigger</td><td class="num">81.3%</td><td class="num">30.9%</td></tr>
+          </tbody>
+        </table>
+        <p class="table-caption">
+          <strong>Table 1.</strong> Percentage of responses exhibiting each behaviour. Humans
+          recognise the trap and use the "else" escape hatch far more often than the strongest
+          proprietary model. While models have learned some human-like behaviours, alignment
+          with humans remains imperfect.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ CITATION ============ -->
+    <section id="cite">
+      <div class="container">
+        <h2>BibTeX</h2>
+        <p>If this work is useful in your research, please cite us:</p>
+
+        <div class="bibtex-wrap">
+          <button class="copy-btn" onclick="copyBib(this)">Copy</button>
+<pre id="bibtex">@inproceedings{anonymous2026aipsych,
+  title     = {How Scaling VLMs Trades Cognitive Biases},
+  author    = {Anonymous Author(s)},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2026},
+  note      = {Under review}
+}</pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 &middot; NeurIPS 2026 submission. The benchmark and code are released under <span style="font-family: var(--mono);">CC&nbsp;BY&nbsp;4.0</span>.</p>
+      <p>Hosted on GitHub Pages.</p>
+    </div>
+  </footer>
+
+  <script>
+    function copyBib(btn) {
+      const text = document.getElementById('bibtex').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('ok');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('ok');
+        }, 1800);
+      }).catch(() => {
+        btn.textContent = 'Press ⌘C';
+        setTimeout(() => btn.textContent = 'Copy', 1800);
+      });
+    }
+  </script>
+</body>
+</html>
