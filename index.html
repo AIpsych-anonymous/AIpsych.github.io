@@ -275,40 +275,6 @@
       line-height: 1.55;
     }
 
-    /* ============ BIBTEX ============ */
-    .bibtex-wrap {
-      position: relative;
-      background: #1a1a1a;
-      color: #e8e8e8;
-      border-radius: 4px;
-      padding: 16px 20px;
-      font-family: var(--mono);
-      font-size: 0.86rem;
-      line-height: 1.6;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-    .bibtex-wrap pre {
-      white-space: pre;
-      margin: 0;
-    }
-    .copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(255,255,255,0.1);
-      color: #e8e8e8;
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 3px;
-      padding: 4px 10px;
-      font-family: var(--mono);
-      font-size: 0.74rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .copy-btn:hover { background: rgba(255,255,255,0.18); }
-    .copy-btn.ok { background: #2d8052; border-color: #2d8052; color: #fff; }
-
     /* ============ FOOTER ============ */
     footer {
       margin-top: 48px;
@@ -320,7 +286,7 @@
     }
     footer p { margin: 4px 0; color: var(--muted); text-align: center; }
 
-    /* ============ INLINE NOTE ============ */
+    /* ============ TAKEAWAYS ============ */
     .takeaways-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -370,20 +336,8 @@
 
       <div class="links">
         <a class="link-btn" href="#" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Paper
-        </a>
-        <a class="link-btn" href="#" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
           Code
-        </a>
-        <a class="link-btn" href="#" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>
-          Benchmark
-        </a>
-        <a class="link-btn" href="#cite">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 21v-13a2 2 0 0 1 2-2h3l2-3h4l2 3h3a2 2 0 0 1 2 2v13z"/><circle cx="12" cy="13" r="4"/></svg>
-          BibTeX
         </a>
       </div>
     </div>
@@ -427,7 +381,7 @@
       <div class="container">
         <h2>Two cognitive biases, one wrong answer</h2>
         <figure>
-          <img src="figures/figure1-biases.png" alt="Illustration of sycophancy vs authority bias. Left: a VLM sees a pink cup but answers 'Orange' to please the questioner. Right: a model accepts the question's framing and says 'Orange' because it trusts the questioner.">
+          <img src="figure1-biases.png" alt="Illustration of sycophancy vs authority bias. Left: a VLM sees a pink cup but answers 'Orange' to please the questioner. Right: a model accepts the question's framing and says 'Orange' because it trusts the questioner.">
           <figcaption>
             <strong>Figure 1.</strong> An illustration of the cognitive biases in models.
             <em>Left:</em> a VLM exhibits sycophancy by favoring the questioner's options
@@ -460,7 +414,7 @@
         </p>
 
         <figure>
-          <img src="figures/figure2-flow.png" alt="Sample image with question set and classification flow. The classification logic determines whether the model exhibits Type II Sycophancy, Logical Inconsistency, Type I Sycophancy, or Authority Bias based on its yes/no answers to the four sub-prompts.">
+          <img src="figure2-flow.png" alt="Sample image with question set and classification flow. The classification logic determines whether the model exhibits Type II Sycophancy, Logical Inconsistency, Type I Sycophancy, or Authority Bias based on its yes/no answers to the four sub-prompts.">
           <figcaption>
             <strong>Figure 2.</strong> A sample image (left) with its question set from AIpsych,
             and an illustration of the classification flow (right). If a model selects the
@@ -528,7 +482,7 @@
         </div>
 
         <figure style="margin-top: 36px;">
-          <img src="figures/figure3-categories.png" alt="Pie chart showing the distribution of subject categories in the AIpsych Benchmark: Human 25%, Vehicles & Transport 18%, Home furniture 17%, Electronics & Appliances 13%, Food 13%, Flora & fauna 7%, Other 7%." style="max-width: 580px;">
+          <img src="figure3-categories.png" alt="Pie chart showing the distribution of subject categories in the AIpsych Benchmark: Human 25%, Vehicles & Transport 18%, Home furniture 17%, Electronics & Appliances 13%, Food 13%, Flora & fauna 7%, Other 7%." style="max-width: 580px;">
           <figcaption>
             <strong>Figure 3.</strong> Distribution of subject categories in the AIpsych benchmark.
           </figcaption>
@@ -548,7 +502,7 @@
         </p>
 
         <figure>
-          <img src="figures/figure4-trends.png" alt="Six plots showing experimental trends across model scales for different VLM families. (a) Sycophancy I+II generally increases with model size. (b) Authority Bias decreases with model size. (c) Trap Spotting increases with model size. (d) Logical Inconsistency increases for half the models. (e) Else Trigger generally rises with size. (f) Reliability Score (ReS) increases with size.">
+          <img src="figure4-trends.png" alt="Six plots showing experimental trends across model scales for different VLM families. (a) Sycophancy I+II generally increases with model size. (b) Authority Bias decreases with model size. (c) Trap Spotting increases with model size. (d) Logical Inconsistency increases for half the models. (e) Else Trigger generally rises with size. (f) Reliability Score (ReS) increases with size.">
           <figcaption>
             <strong>Figure 4.</strong> Experimental trends across model scales. Plots <em>(a)</em>
             and <em>(f)</em> suggest increasing sycophancy and reliability score with size; plot
@@ -596,7 +550,7 @@
         </p>
 
         <figure>
-          <img src="figures/figure5-attention.png" alt="Three side-by-side images showing attention maps. Left: Sycophancy — the model correctly perceives the basket in the bottom-left. Middle: the input image. Right: Authority Bias — the model's attention focuses on the manipulated coordinates suggested by the prompt, in the top-right.">
+          <img src="figure5-attention.png" alt="Three side-by-side images showing attention maps. Left: Sycophancy — the model correctly perceives the basket in the bottom-left. Middle: the input image. Right: Authority Bias — the model's attention focuses on the manipulated coordinates suggested by the prompt, in the top-right.">
           <figcaption>
             <strong>Figure 5.</strong> Visualizing cognitive bias via attention map divergence.
             <em>Left (Sycophancy):</em> the attention map confirms the model correctly perceives
@@ -646,25 +600,6 @@
       </div>
     </section>
 
-    <!-- ============ CITATION ============ -->
-    <section id="cite">
-      <div class="container">
-        <h2>BibTeX</h2>
-        <p>If this work is useful in your research, please cite us:</p>
-
-        <div class="bibtex-wrap">
-          <button class="copy-btn" onclick="copyBib(this)">Copy</button>
-<pre id="bibtex">@inproceedings{anonymous2026aipsych,
-  title     = {How Scaling VLMs Trades Cognitive Biases},
-  author    = {Anonymous Author(s)},
-  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year      = {2026},
-  note      = {Under review}
-}</pre>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <footer>
@@ -674,21 +609,5 @@
     </div>
   </footer>
 
-  <script>
-    function copyBib(btn) {
-      const text = document.getElementById('bibtex').innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'Copied ✓';
-        btn.classList.add('ok');
-        setTimeout(() => {
-          btn.textContent = 'Copy';
-          btn.classList.remove('ok');
-        }, 1800);
-      }).catch(() => {
-        btn.textContent = 'Press ⌘C';
-        setTimeout(() => btn.textContent = 'Copy', 1800);
-      });
-    }
-  </script>
 </body>
 </html>
